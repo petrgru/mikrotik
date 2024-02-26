@@ -1,0 +1,20 @@
+/certificate/add name="r1-ca" common-name="r1-ca" days-valid=10000 subject-alt-name="email:r1-ca" key-size=4096 key-usage=key-cert-sign,crl-sign
+:do {/certificate/sign [find name=r1-ca] name=r1-ca} on-error={:delay 3}
+/certificate/add name="r1" common-name="192.168.2.14" days-valid=5000 subject-alt-name="IP:192.168.2.14" key-size=4096 key-usage=digital-signature,content-commitment,key-encipherment,key-agreement,tls-server
+:do {/certificate/sign [find name=r1] ca=r1-ca name=r1} on-error={:delay 3}
+/certificate/add name="r1-r2" common-name="r1-r2" days-valid=5000 subject-alt-name="email:r1-r2" key-size=4096 key-usage=digital-signature,key-encipherment,data-encipherment,key-agreement,tls-client
+:do {/certificate/sign [find name=r1-r2] ca=r1-ca name=r1-r2} on-error={:delay 3}
+:delay 2
+/certificate/export-certificate r1-ca file-name=r1-ca
+/certificate/export-certificate r1 file-name=r1 type=pem export-passphrase=passphrase
+/certificate/export-certificate r1-r2 file-name=r1-r2 type=pkcs12 export-passphrase=passphrase
+
+
+/certificate/add name="r1-r3" common-name="r1-r3" days-valid=5000 subject-alt-name="email:r1-r3" key-size=4096 key-usage=digital-signature,key-encipherment,data-encipherment,key-agreement,tls-client
+:do {/certificate/sign [find name=r1-r3] ca=r1-ca name=r1-r3} on-error={:delay 3}
+:delay 2
+/certificate/export-certificate r1-r3 file-name=r1-r3 type=pkcs12 export-passphrase=passphrase
+
+
+# odstranení hesla z certifikátu v linuxu
+openssl rsa -in [original.key] -out [new.key]
